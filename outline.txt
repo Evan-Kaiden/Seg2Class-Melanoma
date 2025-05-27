@@ -1,0 +1,3 @@
+1. u-net: predict image segmentation
+2. freeze intermediate layers 
+3. residual connections and mask output for final prediction model
