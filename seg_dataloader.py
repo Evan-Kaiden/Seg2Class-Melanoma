@@ -7,18 +7,21 @@ import cv2
 import pandas as pd
 
 class segmentationLoader(Dataset):
-    def __init__(self, image_paths, csv_path):
+    def __init__(self, root, image_paths, csv_path, image_size=(256,256)):
+        self.root = root
         self.image_paths = image_paths
         self.csv = pd.read_csv(csv_path)
+        self.image_size = image_size
 
     def __len__(self):
         return len(self.image_paths)
     
     def __getitem__(self, idx):
-        image_path = self.image_paths[idx]
+        image_path = os.path.join(self.root, self.image_paths[idx])
         
         x = cv2.imread(image_path)
         x = cv2.cvtColor(x, cv2.COLOR_BGR2RGB)
+        x = cv2.resize(x, self.image_size)
 
         base_name = os.path.splitext(os.path.basename(image_path))[0]
         seg_path = image_path.replace("Data", "GroundTruth").replace(base_name, base_name + "_Segmentation")
@@ -26,11 +29,12 @@ class segmentationLoader(Dataset):
 
         seg = cv2.imread(seg_path)
         seg = cv2.cvtColor(seg, cv2.COLOR_BGR2RGB)
+        seg = cv2.resize(seg, self.image_size)
 
         image_name = image_path.split('/')[-1]
         image_name = image_name.split('.')[0]
-        label_row = self.csv[self.image == image_name]
-        label = self.csv[label_row].label
+        label_row = self.csv[self.csv.image == image_name]
+        label = label_row.label.values[0]
 
         if isinstance(label, str):
             if label == "benign":
